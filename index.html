@@ -343,9 +343,9 @@
   var CARAPACE_COOLDOWN = 10;
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function reset() {
-    state = { x:0, y:0, hp:100, maxHp:100, armour:0, speed:178, threat:1, threatLevel:4, biomass:0, milestone:0, nextBiomass:6, kills:0, droneKills:0, tankKills:0, distance:0, elapsed:0, aim:0, shake:0, damageFlash:0, walking:false, sizeScale:1.12, devourRadius:25, mealHeal:1, secondLives:0, carapaceCooldown:0, carapaceBreak:0, invincible:0, airstrikeEvasion:0, shrapnelPower:1, hardeningPower:0, swarmCapacity:0, swarmRespawn:0, broodSacrificeClock:0, spitClock:0, combo:0,comboTimer:0,maxCombo:1,dashCooldown:0,dashTimer:0,dashVx:0,dashVy:0,dashConnected:false,stunTimer:0,stunImmunityTimer:0,eatSnap:0,mutationPulse:0,acidClock:0,magnetRange:145,aggroScale:1, m9Perk:null, perkAge:0, lastHit:'The perimeter closed in.', traits:{plates:0,spikes:0,mandibles:0,glands:0,abdomen:0,cilia:0,eyes:0,swarm:0,preserving:0,infestation:0,hardening:0,acid:0,magnet:0,camouflage:0}, infestationPower:0 };
+    state = { x:0, y:0, hp:100, maxHp:100, armour:0, speed:178, threat:1, threatLevel:4, biomass:0, milestone:0, nextBiomass:6, kills:0, droneKills:0, tankKills:0, distance:0, elapsed:0, aim:0, shake:0, damageFlash:0, walking:false, sizeScale:1.12, devourRadius:25, mealHeal:1, secondLives:0, carapaceCooldown:0, carapaceBreak:0, invincible:0, airstrikeEvasion:0, shrapnelPower:1, hardeningPower:0, swarmCapacity:0, swarmRespawn:0, broodSacrificeClock:0, spitClock:0, combo:0,comboTimer:0,maxCombo:1,dashCooldown:0,dashTimer:0,dashVx:0,dashVy:0,dashConnected:false,stunTimer:0,stunImmunityTimer:0,eatSnap:0,mutationPulse:0,acidClock:0,magnetRange:145,aggroScale:1, m9Perk:null, perkAge:0, lastHit:'The perimeter closed in.', traits:{plates:0,spikes:0,mandibles:0,glands:0,abdomen:0,cilia:0,eyes:0,swarm:0,preserving:0,infestation:0,hardening:0,acid:0,magnet:0,camouflage:0}, infestationPower:0, glandYield:0, preyPower:0 };
     if(enemies)for(var ep=0;ep<enemies.length;ep++)enemyPool.push(enemies[ep]);if(bullets)for(var bp=0;bp<bullets.length;bp++)bulletPool.push(bullets[bp]);
-    enemies = []; corpses=[]; bullets = []; spitProjectiles = []; motes = []; shards = []; carapaceShrapnel = []; swarm = []; squads = []; airstrikes = []; floats=[];acidPools=[]; radio=null; moveTarget = null; ended = false; paused = false; choosingMutation = false; victoryCinematic = false; victoryTimer = 0; pendingMutation=null; pendingMutationButton=null; spawnClock = 1.1; militaryClock = 10; containmentClock = 4; tankClock = 18; warbotClock = 4; airstrikeClock = AIRSTRIKE_COOLDOWN; nextSquadId = 1; hitStop=0; hudWakeUntil=8; musicPulseClock=0;heartbeatClock=0; joystickVector.x=0;joystickVector.y=0;lastDirectionTap={time:0,x:0,y:0};keyTapTimes={};document.body.classList.remove('hud-quiet','kaiju-active');document.body.classList.add('intro-active');els.introCard.classList.remove('gone');els.hint.classList.toggle('gone',movementHintDismissed);scheduleIntroDismissal();spawnOpeningCivilians();spawnRadio();
+    enemies = []; corpses=[]; bullets = []; spitProjectiles = []; motes = []; shards = []; carapaceShrapnel = []; swarm = []; squads = []; airstrikes = []; floats=[];acidPools=[]; radio=null; moveTarget = null; ended = false; paused = false; choosingMutation = false; victoryCinematic = false; victoryTimer = 0; pendingMutation=null; pendingMutationButton=null; spawnClock = 1.1; militaryClock = 5; containmentClock = 4; tankClock = 18; warbotClock = 4; airstrikeClock = AIRSTRIKE_COOLDOWN; nextSquadId = 1; hitStop=0; hudWakeUntil=8; musicPulseClock=0;heartbeatClock=0; joystickVector.x=0;joystickVector.y=0;lastDirectionTap={time:0,x:0,y:0};keyTapTimes={};document.body.classList.remove('hud-quiet','kaiju-active');document.body.classList.add('intro-active');els.introCard.classList.remove('gone');els.hint.classList.toggle('gone',movementHintDismissed);scheduleIntroDismissal();spawnOpeningCivilians();spawnRadio();
     document.getElementById('endTitle').textContent='Devour contained';els.endCopy.textContent='The hunt is never over. Break containment again and grow through the next response wave.';els.airstrikeAlert.textContent='Airstrike inbound';
     els.pauseModal.classList.remove('show'); els.mutationModal.classList.remove('show'); els.mutationConfirm.hidden=true; els.mutationChoices.hidden=false; els.airstrikeAlert.classList.remove('show'); els.endModal.classList.remove('show');
     updateHud();
@@ -384,11 +384,11 @@
   function dismissMovementHint(){if(movementHintDismissed)return;movementHintDismissed=true;els.hint.classList.add('gone');}
   function particleCount(base){return settings.particles===0?0:settings.particles===1?Math.ceil(base*.48):base;}
   function pushMote(m){if(settings.particles===0)return;if(settings.particles===1&&Math.random()<.52)return;if(motes.length>=PARTICLE_CAP)motes.shift();motes.push(m);}
-  function pushBullet(b){if(bullets.length>=BULLET_CAP){bulletPool.push(bullets.shift());}var pooled=bulletPool.pop()||{};for(var k in pooled)delete pooled[k];for(var p in b)pooled[p]=b[p];bullets.push(pooled);var now=performance.now();if(b.target!=='zombie'&&now-lastGunSound>70){sfx(b.kind==='rocket'?'rocket':b.kind==='cannon'?'blast':b.kind==='exocannon'?'exocannon':b.kind==='exopulse'?'pulse':'gun');lastGunSound=now;}}
+  function pushBullet(b){if(state.preyPower&&b.damage)b.damage=Math.max(1,Math.round(b.damage*(1+state.preyPower)));if(bullets.length>=BULLET_CAP){bulletPool.push(bullets.shift());}var pooled=bulletPool.pop()||{};for(var k in pooled)delete pooled[k];for(var p in b)pooled[p]=b[p];bullets.push(pooled);var now=performance.now();if(b.target!=='zombie'&&now-lastGunSound>70){sfx(b.kind==='rocket'?'rocket':b.kind==='cannon'?'blast':b.kind==='exocannon'?'exocannon':b.kind==='exopulse'?'pulse':'gun');lastGunSound=now;}}
   function removeBullet(index){var b=bullets[index];bullets.splice(index,1);if(bulletPool.length<220)bulletPool.push(b);}
   function removeEnemy(index){var e=enemies[index];enemies.splice(index,1);if(e&&enemyPool.length<160)enemyPool.push(e);}
   function addFloat(x,y,text,color){if(floats.length>=FLOAT_CAP)floats.shift();floats.push({x:x,y:y,text:text,color:color||'#ffe09a',life:1,max:1,vy:-28});}
-  function registerKill(x,y,base){state.combo=state.comboTimer>0?Math.min(20,state.combo+1):1;state.comboTimer=3.4;var mult=1+Math.floor(state.combo/3)*.25,unstoppableMult=state.m9Perk==='unstoppable'?1+Math.min(4,state.perkAge*.035):1,unseenMult=state.m9Perk==='unseen'?2:1;state.maxCombo=Math.max(state.maxCombo,mult);var amount=base*state.threat*mult*(1+state.traits.magnet*.1)*unstoppableMult;addFloat(x,y,'+'+Math.round(amount*unseenMult)+' biomass',mult>1||unseenMult>1?'#ffc458':'#d7ef9b');return amount;}
+  function registerKill(x,y,base){state.combo=state.comboTimer>0?Math.min(20,state.combo+1):1;state.comboTimer=3.4;var mult=1+Math.floor(state.combo/3)*.25,unstoppableMult=state.m9Perk==='unstoppable'?1+Math.min(4,state.perkAge*.035):1,unseenMult=state.m9Perk==='unseen'?2:1;state.maxCombo=Math.max(state.maxCombo,mult);var amount=base*state.threat*mult*(1+state.traits.magnet*.1)*(1+(state.glandYield||0))*unstoppableMult;addFloat(x,y,'+'+Math.round(amount*unseenMult)+' biomass',mult>1||unseenMult>1?'#ffc458':'#d7ef9b');return amount;}
   function apexRegenRate(){return !state.m9Perk?0:state.milestone>=12?8:state.milestone===11?4:state.milestone===10?2:1;}
   function hitPlayer(amount){state.damageFlash=Math.min(1,state.damageFlash+.65);hudWakeUntil=state.elapsed+1.8;document.body.classList.remove('hud-quiet');els.damageFlash.style.opacity=String(state.damageFlash);addFloat(state.x,state.y-30*state.sizeScale,'−'+Math.max(1,Math.round(amount))+' HP','#ff8b78');}
   function dashDuration(){return state.m9Perk==='unstoppable'?.24:.18;}
@@ -399,7 +399,7 @@
   function drawFloat(f){var p=worldToScreen(f.x,f.y);ctx.globalAlpha=Math.max(0,f.life/f.max);ctx.fillStyle=f.color;ctx.textAlign='center';ctx.font='700 12px "IBM Plex Mono", monospace';ctx.shadowBlur=6;ctx.shadowColor='rgba(0,0,0,.8)';ctx.fillText(f.text,p.x,p.y);ctx.shadowBlur=0;ctx.globalAlpha=1;}
   function drawAcidPool(a){var p=worldToScreen(a.x,a.y);ctx.save();ctx.translate(p.x,p.y);ctx.globalAlpha=Math.max(0,a.life/a.max)*.55;ctx.fillStyle='#78aa27';ctx.beginPath();ctx.ellipse(0,0,a.r, a.r*.58,a.seed,0,TAU);ctx.fill();ctx.strokeStyle='#c5ee52';ctx.lineWidth=1;ctx.stroke();ctx.restore();}
   function spawnRadio(){var a=Math.random()*TAU,d=280+Math.random()*120;radio={x:state.x+Math.cos(a)*d,y:state.y+Math.sin(a)*d,active:true,respawnAt:0,pulse:Math.random()*TAU};}
-  function destroyRadio(){if(!radio||!radio.active)return;radio.active=false;radio.respawnAt=state.elapsed+20;airstrikeClock+=20;state.shake=Math.max(state.shake,8);sfx('rocket');addFloat(radio.x,radio.y,'STRIKE DELAYED +20s','#ffc458');els.airstrikeAlert.textContent='Radio destroyed · strike delayed';els.airstrikeAlert.classList.add('show');setTimeout(function(){if(!ended)els.airstrikeAlert.classList.remove('show');},1300);for(var i=0;i<(reduceMotion?6:16);i++)pushMote({x:radio.x,y:radio.y,vx:(Math.random()-.5)*180,vy:(Math.random()-.5)*180,life:.3+Math.random()*.45,max:.75,size:2+Math.random()*4,color:i%2?'#ff9b52':'#8ea09b'});}
+  function destroyRadio(){if(!radio||!radio.active)return;radio.active=false;radio.respawnAt=state.elapsed+20;airstrikeClock+=20;state.shake=Math.max(state.shake,8);sfx('rocket');addFloat(radio.x,radio.y,'STRIKE DELAYED +20s','#ffc458');els.airstrikeAlert.textContent='Radio destroyed · strike delayed';els.airstrikeAlert.classList.add('show');for(var i=0;i<(reduceMotion?6:16);i++)pushMote({x:radio.x,y:radio.y,vx:(Math.random()-.5)*180,vy:(Math.random()-.5)*180,life:.3+Math.random()*.45,max:.75,size:2+Math.random()*4,color:i%2?'#ff9b52':'#8ea09b'});}
   function drawRadio(){if(!radio||!radio.active)return;var p=worldToScreen(radio.x,radio.y),pulse=.5+.5*Math.sin(state.elapsed*5+radio.pulse);ctx.save();ctx.translate(p.x,p.y);ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(0,13,20,6,0,0,TAU);ctx.fill();ctx.fillStyle='#38433f';ctx.strokeStyle='#f0a94f';ctx.lineWidth=2;ctx.fillRect(-14,-10,28,22);ctx.strokeRect(-14,-10,28,22);ctx.strokeStyle='#d7e2dd';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(7,-10);ctx.lineTo(15,-26);ctx.stroke();ctx.fillStyle='#ff6c4d';ctx.globalAlpha=.65+.35*pulse;ctx.beginPath();ctx.arc(-6,-3,3,0,TAU);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#a8b4af';ctx.fillRect(-8,4,16,3);ctx.restore();}
 
   function drawWorld() {
@@ -785,7 +785,7 @@
   function liveHumanCount(){var n=0;for(var i=0;i<enemies.length;i++)if(isLiveHumanType(enemies[i].type))n++;return n;}
   function spawnOpeningCivilians(){
     var count=10,start=Math.random()*TAU;
-    for(var i=0;i<count;i++){var a=start+i/count*TAU+(Math.random()-.5)*.18,d=72+Math.random()*105;createEnemy('civilian',state.x+Math.cos(a)*d,state.y+Math.sin(a)*d,0,i,count);}
+    for(var i=0;i<count;i++){var a=start+i/count*TAU+(Math.random()-.5)*.18,d=56+Math.random()*64;createEnemy('civilian',state.x+Math.cos(a)*d,state.y+Math.sin(a)*d,0,i,count);}
   }
   function countEnemyType(type){var count=0;for(var i=0;i<enemies.length;i++)if(enemies[i].type===type)count++;return count;}
   function isClimax(){return state.threatLevel>=72||state.milestone>=8;}
@@ -807,14 +807,14 @@
       hat:null,bag:type==='civilian'?'#344039':null,
       seed:Math.random()*TAU,hit:0,heading:Math.atan2(state.y-y,state.x-x),running:false,
       shootClock:type==='tank'?1.1+Math.random():type==='exosuit'?.55+Math.random()*.4:type==='soldier'?.35+(slot||0)*.19+Math.random()*.18:.5+Math.random()*1.2,pulseClock:type==='exosuit'?.45+Math.random()*.7:0,cannonWindup:0,biteClock:Math.random()*.45,firing:0,turretAngle:0,laserTime:0,laserActive:false,laserDamage:1,laserTick:1,laserDamageAccum:0,
-      squadId:squadId||0,squadSlot:slot||0,squadSize:squadSize||1,tacticSide:Math.random()<.5?-1:1});enemies.push(unit);
+      squadId:squadId||0,squadSlot:slot||0,squadSize:squadSize||1,tacticSide:Math.random()<.5?-1:1});if(state.preyPower){var preyScale=1+state.preyPower;unit.hp=Math.max(1,Math.round(unit.hp*preyScale));unit.maxHp=unit.hp;unit.speed*=preyScale;}enemies.push(unit);
   }
   function spawnEnemy() {
     var a=Math.random()*TAU, dist=Math.hypot(W,H)*.58+70+Math.random()*100, roll=Math.random(), type;
-    if(state.elapsed<8){
+    if(state.elapsed<5){
       type='civilian';
     } else if(isClimax()){
-      /* At milestone ten the civilian evacuation is complete: only the armed containment force remains. */
+      /* At milestone eight the civilian evacuation is complete: only the armed containment force remains. */
       type=roll<.34?'drone':roll<.62?'rocket':roll<.90?'soldier':'tank';
     } else if(state.elapsed>=130){
       /* After full containment, rockets and drones become the dominant response and keep growing denser. */
@@ -877,19 +877,21 @@
     }
     els.airstrikeAlert.classList.add('show');
   }
+  function soldierShotDamage(){return state.milestone>=1?Math.round(11*(1+state.milestone*.1)):11;}
   function playerDamage(rawDamage,kind,armourFactor,minimumDamage) {
     if(state.m9Perk==='unseen'&&kind!=='laser')return 0;
     if(kind==='exocannon')return Math.max(5,rawDamage*(100/(100+state.armour*armourFactor)));
     if(state.m9Perk==='unstoppable')return kind==='airstrike'?Math.max(18,rawDamage*.55):0;
     var mitigated=rawDamage*(100/(100+state.armour*armourFactor));
-    if(kind==='cannon')return Math.max(10,state.armour>=500?Math.min(25,mitigated):mitigated);
-    if(state.armour>=500)return rawDamage*.01;
+    var smallArms=kind!=='rocket'&&kind!=='cannon'&&kind!=='exocannon'&&kind!=='airstrike'&&kind!=='laser';
+    if(state.milestone>=5&&smallArms){var falloff=100/(100+state.armour);mitigated*=falloff;minimumDamage*=falloff;}
+    if(kind==='cannon')return Math.max(10,mitigated);
     return Math.max(minimumDamage,mitigated);
   }
   function detonateDrone(e,index) {
     removeEnemy(index);state.shake=13;sfx('blast');
     var dist=Math.hypot(e.x-state.x,e.y-state.y), blast=62+14*state.sizeScale;
-    if(dist<blast&&state.invincible<=0&&state.m9Perk!=='unstoppable'){var damage=playerDamage(30,'drone',.45,7);state.hp=Math.max(0,state.hp-damage);hitPlayer(damage);if(state.hp<=0)handleLethal();}
+    if(dist<blast&&state.invincible<=0&&state.m9Perk!=='unstoppable'){var damage=playerDamage(30,'drone',.45,7);state.hp=Math.max(0,state.hp-damage);if(damage>0)state.lastHit='A drone blast tore through the shell.';hitPlayer(damage);if(state.hp<=0)handleLethal();}
     registerMachineKill(e);
     for(var i=0;i<(reduceMotion?6:18);i++)pushMote({x:e.x,y:e.y,vx:(Math.random()-.5)*260,vy:(Math.random()-.5)*260,life:.35+Math.random()*.4,max:.75,size:3+Math.random()*4,color:i%2?'#ff7a3d':'#d6e0dc'});
   }
@@ -969,14 +971,14 @@
       if(state.droneKills===100)addFloat(state.x,state.y-70,'DRONES EXHAUSTED · EXOSUITS DEPLOYED','#fff0a8');
     } else if(e.type==='tank'){
       state.tankKills++;
-      gainBiomass(4);
+      grantBiomassAt(e.x,e.y,4);
       addFloat(e.x,e.y-20,'CREW +'+(state.m9Perk==='unseen'?8:4)+' BIOMASS','#ffc458');
       addFloat(e.x,e.y+2,'METAL +'+armourGain+' ARMOUR','#b9e6c9');
       if(state.tankKills===20){warbotClock=0;addFloat(state.x,state.y-70,'HEXAPOD HUNTERS DEPLOYED','#ff8b78');}
     } else {
       addFloat(e.x,e.y-14,'METAL ABSORBED · +'+armourGain+' ARMOUR','#b9e6c9');
     }
-    if(e.type==='exosuit'){state.kills++;applyHardeningKill(10);gainBiomass(registerKill(e.x,e.y,70));state.hp=Math.min(state.maxHp,state.hp+30*state.mealHeal);}
+    if(e.type==='exosuit'){state.kills++;applyHardeningKill(10);grantBiomassAt(e.x,e.y,registerKill(e.x,e.y,70));state.hp=Math.min(state.maxHp,state.hp+30*state.mealHeal);}
     else applyHardeningKill(1);
     state.shake=Math.max(state.shake,e.type==='tank'||e.type==='warbot'?7:3);
     sfx('chomp');
@@ -985,7 +987,7 @@
   }
   function killZombie(e,index) {
     dropCorpse(e);removeEnemy(index);state.kills++;applyHardeningKill();var zombieYield=(3+state.traits.infestation)*(state.m9Perk==='unlimited'?2:1),yieldValue=registerKill(e.x,e.y,zombieYield);
-    gainBiomass(yieldValue);state.hp=Math.min(state.maxHp,state.hp+(10+state.traits.infestation*3)*state.mealHeal);sfx('chomp');
+    grantBiomassAt(e.x,e.y,yieldValue);state.hp=Math.min(state.maxHp,state.hp+(10+state.traits.infestation*3)*state.mealHeal);sfx('chomp');
     for(var i=0;i<(reduceMotion?6:16);i++)pushMote({x:e.x,y:e.y,vx:(Math.random()-.5)*210,vy:(Math.random()-.5)*210,life:.45+Math.random()*.5,max:.95,size:3+Math.random()*4,color:i%3?'#769b45':'#6c1730'});
   }
   function nearestEnemyFrom(x,y,range) {
@@ -1016,7 +1018,7 @@
     if(e.type==='drone'||e.type==='tank'||e.type==='exosuit'||e.type==='warbot'){registerMachineKill(e);return;}
     state.kills++;applyHardeningKill();
     var nourishment=e.type==='rocket'?9:e.type==='soldier'?7:e.type==='police'?4:2;
-    gainBiomass(registerKill(e.x,e.y,nourishment));state.shake=Math.max(state.shake,3);sfx('chomp');
+    grantBiomassAt(e.x,e.y,registerKill(e.x,e.y,nourishment));state.shake=Math.max(state.shake,3);sfx('chomp');
     for(var i=0;i<(reduceMotion?5:14);i++)pushMote({x:e.x,y:e.y,vx:(Math.random()-.5)*175,vy:(Math.random()-.5)*175,life:.4+Math.random()*.45,max:.85,size:3+Math.random()*3,color:i%3?'#7e1530':'#c38342'});
   }
   function devourEnemy(e,index) {
@@ -1028,26 +1030,26 @@
     var nourishment=e.type==='rocket'?9:e.type==='soldier'?7:e.type==='police'?4:2;
     var healing=(e.type==='rocket'?20:e.type==='soldier'?18:e.type==='police'?13:9)*state.mealHeal;
     state.hp=Math.min(state.maxHp,state.hp+healing);state.shake=6;sfx('chomp');
-    gainBiomass(registerKill(e.x,e.y,nourishment));
+    grantBiomassAt(e.x,e.y,registerKill(e.x,e.y,nourishment));
     for(var i=0;i<(reduceMotion?7:22);i++)pushMote({x:e.x,y:e.y,vx:(Math.random()-.5)*235,vy:(Math.random()-.5)*235,life:.48+Math.random()*.55,max:1.03,size:4+Math.random()*4,color:i%4?'#781129':'#d18a43'});
   }
   function mutationPower(){return 1+state.milestone*.28;}
   function scaled(n,p){return Math.max(1,Math.round(n*p));}
   var mutations = [
-    {name:'Plated carapace',copy:'Shell plates blunt incoming fire.',effect:function(p){return '+'+scaled(18,p)+' armour';},cost:function(p){return '-'+scaled(5,p)+' speed';},color:'#91a96a',trait:'plates',apply:function(p){state.armour+=scaled(18,p);state.speed=Math.max(70,state.speed-scaled(5,p));}},
+    {name:'Plated carapace',copy:'Shell plates blunt incoming fire.',effect:function(p){return '+'+scaled(18,p)+' armour';},cost:function(p){return '-'+scaled(5,p)+' speed';},color:'#91a96a',trait:'plates',apply:function(p){state.armour+=scaled(18,p);state.speed-=scaled(5,p);}},
     {name:'Raptor cilia',copy:'Sensory hairs sharpen pursuit.',effect:function(p){return '+'+scaled(24,p)+' speed';},cost:function(p){return '-'+scaled(6,p)+' max health';},color:'#c8de83',trait:'cilia',apply:function(p){state.speed+=scaled(24,p);state.maxHp=Math.max(50,state.maxHp-scaled(6,p));state.hp=Math.min(state.hp,state.maxHp);}},
     {name:'Ravenous mandibles',copy:'Longer jaws reach and heal more.',effect:function(p){return '+'+scaled(7,p)+' reach · +'+scaled(20,p)+'% healing';},cost:function(p){return '+'+scaled(8,p)+'% threat';},color:'#dbb45e',trait:'mandibles',apply:function(p){state.devourRadius+=scaled(7,p);state.mealHeal+=.2*p;state.threat+=.08*p;}},
-    {name:'Pheromone glands',copy:'Rich secretions draw stronger prey.',effect:function(p){return '+'+scaled(25,p)+'% biomass yield';},cost:function(p){return '+'+scaled(25,p)+'% threat';},color:'#d87a4b',trait:'glands',apply:function(p){state.threat+=.25*p;}},
-    {name:'Hypertrophic abdomen',copy:'Store more health and seal wounds.',effect:function(p){return '+'+scaled(28,p)+' max health';},cost:function(p){return '-'+scaled(5,p)+' speed';},color:'#6d9d57',trait:'abdomen',apply:function(p){var n=scaled(28,p);state.maxHp+=n;state.hp=Math.min(state.maxHp,state.hp+n);state.speed=Math.max(70,state.speed-scaled(5,p));}},
+    {name:'Pheromone glands',copy:'Rich secretions draw stronger prey.',effect:function(p){return '+'+scaled(25,p)+'% biomass yield';},cost:function(p){return '+'+scaled(25,p)+'% threat';},color:'#d87a4b',trait:'glands',apply:function(p){var bonus=scaled(25,p)/100;state.glandYield=(state.glandYield||0)+bonus;state.preyPower=(state.preyPower||0)+bonus;}},
+    {name:'Hypertrophic abdomen',copy:'Store more health and seal wounds.',effect:function(p){return '+'+scaled(28,p)+' max health';},cost:function(p){return '-'+scaled(5,p)+' speed';},color:'#6d9d57',trait:'abdomen',apply:function(p){var n=scaled(28,p);state.maxHp+=n;state.hp=Math.min(state.maxHp,state.hp+n);state.speed-=scaled(5,p);}},
     {name:'Elytral spines',copy:'Turn the shell into a moving weapon.',effect:function(p){return '+'+scaled(11,p)+' armour · +'+scaled(8,p)+' speed';},cost:function(p){return '-'+scaled(5,p)+' max health';},color:'#b9cf79',trait:'spikes',apply:function(p){state.armour+=scaled(11,p);state.speed+=scaled(8,p);state.maxHp=Math.max(50,state.maxHp-scaled(5,p));state.hp=Math.min(state.hp,state.maxHp);}},
     {name:'Siphoning gut',copy:'Convert each meal into repair.',effect:function(p){return '+'+scaled(45,p)+'% meal healing';},cost:function(p){return '-'+scaled(5,p)+' armour';},color:'#bb5e58',trait:'abdomen',apply:function(p){state.mealHeal+=.45*p;state.armour=Math.max(0,state.armour-scaled(5,p));}},
     {name:'Compound focus',copy:'Track escape routes and rich prey.',effect:function(p){return '+'+scaled(12,p)+' speed';},cost:function(p){return '+'+scaled(10,p)+'% threat';},color:'#77d878',trait:'eyes',apply:function(p){state.speed+=scaled(12,p);state.threat+=.1*p;}},
-    {name:'Brood swarm',copy:'Spawn hunters that pursue separate prey and regrow after death.',effect:function(p){var gain=scaled(5,p);return '+'+(state.m9Perk==='unlimited'?gain:Math.min(15-state.swarmCapacity,gain))+' renewable hunters'+(state.m9Perk==='unlimited'?' · deploy in broods of 3 · uncapped':' · max 15');},cost:function(p){return '-'+scaled(5,p)+' speed';},color:'#a8c95f',trait:'swarm',apply:function(p){var gain=scaled(5,p);state.swarmCapacity=state.m9Perk==='unlimited'?state.swarmCapacity+gain:Math.min(15,state.swarmCapacity+gain);state.speed=Math.max(70,state.speed-scaled(5,p));if(state.m9Perk==='unlimited')spawnBroodBatch();else while(swarm.length<state.swarmCapacity)spawnSwarmling();}},
-    {name:'Exploding carapace',copy:'Detonate on death, then reform.',effect:function(p){return 'second life · 10s cooldown · shrapnel ×'+p.toFixed(1);},cost:function(p){return '-'+scaled(8,p)+' speed';},color:'#e5c878',trait:'preserving',once:true,apply:function(p){state.secondLives=1;state.carapaceCooldown=0;state.shrapnelPower=Math.max(state.shrapnelPower,p);state.speed=Math.max(70,state.speed-scaled(8,p));}},
+    {name:'Brood swarm',copy:'Spawn hunters that pursue separate prey and regrow after death.',effect:function(p){var gain=scaled(5,p);return '+'+(state.m9Perk==='unlimited'?gain:Math.min(15-state.swarmCapacity,gain))+' renewable hunters'+(state.m9Perk==='unlimited'?' · deploy in broods of 3 · uncapped':' · max 15');},cost:function(p){return '-'+scaled(5,p)+' speed';},color:'#a8c95f',trait:'swarm',apply:function(p){var gain=scaled(5,p);state.swarmCapacity=state.m9Perk==='unlimited'?state.swarmCapacity+gain:Math.min(15,state.swarmCapacity+gain);state.speed-=scaled(5,p);if(state.m9Perk==='unlimited')spawnBroodBatch();else while(swarm.length<state.swarmCapacity)spawnSwarmling();}},
+    {name:'Exploding carapace',copy:'Detonate on death, then reform.',effect:function(p){return 'second life · 10s cooldown · shrapnel ×'+p.toFixed(1);},cost:function(p){return '-'+scaled(8,p)+' speed';},color:'#e5c878',trait:'preserving',once:true,apply:function(p){state.secondLives=1;state.carapaceCooldown=0;state.shrapnelPower=Math.max(state.shrapnelPower,p);state.speed-=scaled(8,p);}},
     {name:'Infestation',copy:'Spit infection; the undead spread it.',effect:function(p){return (state.traits.infestation+1)+'-shot volley · stronger undead';},cost:function(p){return '+'+scaled(12,p)+'% threat';},color:'#879d45',trait:'infestation',apply:function(p){state.infestationPower=Math.max(state.infestationPower,p);state.spitClock=0;state.threat+=.12*p;}},
     {name:'Caustic spoor',copy:'Leave an acid trail that melts pursuers.',effect:function(p){return scaled(9,p)+' acid damage/sec · wider trail';},cost:function(p){return '-'+scaled(5,p)+' armour';},color:'#8ec43d',trait:'acid',apply:function(p){state.acidClock=0;state.armour=Math.max(0,state.armour-scaled(5,p));}},
     {name:'Biomass magnet',copy:'Pull in biomass and increase yield.',effect:function(p){return '+'+scaled(42,p)+' attraction range · +10% yield';},cost:function(p){return '+'+scaled(8,p)+'% threat';},color:'#d9c85e',trait:'magnet',apply:function(p){state.magnetRange+=scaled(42,p);state.threat+=.08*p;}},
-    {name:'Predator camouflage',copy:'Delay hostile target acquisition.',effect:function(p){return '-'+Math.min(45,scaled(12,p))+'% enemy aggro';},cost:function(p){return '-'+scaled(8,p)+' speed';},color:'#486a58',trait:'camouflage',apply:function(p){state.aggroScale=Math.max(.55,state.aggroScale-.12*p);state.speed=Math.max(70,state.speed-scaled(8,p));}}
+    {name:'Predator camouflage',copy:'Delay hostile target acquisition.',effect:function(p){return '-'+Math.min(45,scaled(12,p))+'% enemy aggro';},cost:function(p){return '-'+scaled(8,p)+' speed';},color:'#486a58',trait:'camouflage',apply:function(p){state.aggroScale=Math.max(.55,state.aggroScale-.12*p);state.speed-=scaled(8,p);}}
   ];
   function awakenKaiju(perk,p){
     state.m9Perk=perk;state.perkAge=0;state.traits.hardening=1;state.hardeningPower=Math.max(state.hardeningPower,p);state.armour+=scaled(25,p);
@@ -1075,6 +1077,7 @@
   function cancelMutationConfirmation(){
     if(!pendingMutation)return;pendingMutation=null;els.mutationConfirm.hidden=true;els.mutationChoices.hidden=false;els.mutationPrompt.textContent=state.milestone===8&&!state.m9Perk?'Choose your apex mutation, then confirm.':'Pick one, then confirm.';if(pendingMutationButton)pendingMutationButton.focus();pendingMutationButton=null;
   }
+  function grantBiomassAt(x,y,amount){if(state.traits.magnet>0)shards.push({x:x,y:y,value:amount/Math.max(state.threat,.01),seed:Math.random()*TAU});else gainBiomass(amount);}
   function gainBiomass(n) {
     state.biomass+=n*(state.m9Perk==='unseen'?2:1);
     var biomassBar=els.xpBar.parentElement;biomassBar.classList.remove('biomass-flash');void biomassBar.offsetWidth;biomassBar.classList.add('biomass-flash');
@@ -1118,19 +1121,48 @@
     setTimeout(function(){var first=els.mutationChoices.querySelector('button');if(first)first.focus();},0);
   }
   function chooseMutation(m) {
-    var power=mutationPower();m.apply(power);sfx('mutation');if(!m.isKaijuAwakening)state.traits[m.trait]=(state.traits[m.trait]||0)+1;state.milestone++;
+    var power=mutationPower(),speedBefore=state.speed;m.apply(power);var speedDelta=state.speed-speedBefore;sfx('mutation');if(!m.isKaijuAwakening)state.traits[m.trait]=(state.traits[m.trait]||0)+1;state.milestone++;
     state.sizeScale=1.12+state.milestone*.18;state.mutationPulse=.42;state.threatLevel=Math.min(100,state.threatLevel+6);
-    state.speed=Math.max(state.m9Perk==='unseen'?305:92,state.speed*.95);
+    state.speed=Math.max(state.m9Perk==='unseen'?305:92,speedBefore+Math.max(0,speedDelta));
+    state.speed=state.speed*.95+Math.min(0,speedDelta);
     state.armour+=5+state.milestone*3;
     state.nextBiomass=Math.round(6*Math.pow(1.8,state.milestone));
     choosingMutation=false;pendingMutation=null;pendingMutationButton=null;els.mutationModal.classList.remove('show');
     escalateMutationTier();
     if(state.milestone===10)launchMilestoneTenAssault();
-    var checkpoint=state.milestone===5?' · BULLETPROOF':state.milestone===9?' · APEX MUTATION':state.milestone===12?' · KAIJU THRESHOLD':state.milestone%3===0?' · THE HIVE IS THRIVING':'';els.upgrade.querySelector('strong').textContent='M'+state.milestone;els.upgradeCopy.textContent=m.name+' · mass ×'+state.sizeScale.toFixed(2)+checkpoint;els.upgrade.classList.add('show');setTimeout(function(){els.upgrade.classList.remove('show');},760);
+    var checkpoint=state.milestone===5?' · BULLETPROOF':state.milestone===9?' · APEX MUTATION':state.milestone===13?' · KAIJU THRESHOLD':state.milestone%3===0?' · THE HIVE IS THRIVING':'';els.upgrade.querySelector('strong').textContent='M'+state.milestone;els.upgradeCopy.textContent=m.name+' · mass ×'+state.sizeScale.toFixed(2)+checkpoint;els.upgrade.classList.add('show');setTimeout(function(){els.upgrade.classList.remove('show');},760);
     if(state.milestone===13)setTimeout(startVictoryCinematic,900);
     last=performance.now();updateHud();
   }
-  var spawnClock=0, militaryClock=10, containmentClock=4, tankClock=18, warbotClock=4, airstrikeClock=AIRSTRIKE_COOLDOWN, nextSquadId=1;
+  var spawnClock=0, militaryClock=5, containmentClock=4, tankClock=18, warbotClock=4, airstrikeClock=AIRSTRIKE_COOLDOWN, nextSquadId=1;
+  var botOn=location.search.indexOf('bot=1')!==-1, botLogged=false;
+  function botTouchEdible(e){
+    if(!e||e.hp<=0)return false;
+    if(e.type==='exosuit'||e.type==='warbot'){var bx=e.x-state.x,by=e.y-state.y,feed=state.devourRadius*state.sizeScale;return bx*bx+by*by<(e.r+feed)*(e.r+feed);}
+    if(e.type==='zombie')return (e.infectionGrace||0)<=0;
+    return e.type==='civilian'||e.type==='police'||e.type==='soldier'||e.type==='rocket'||e.type==='drone'||e.type==='tank';
+  }
+  function botThink(){
+    var best=null,bd=1e18,i,e,dx,dy,d;
+    for(i=0;i<enemies.length;i++){e=enemies[i];if(!botTouchEdible(e))continue;dx=e.x-state.x;dy=e.y-state.y;d=dx*dx+dy*dy;if(d<bd){bd=d;best=e;}}
+    var threat=null,td=130*130,b,shot,sx,sy,sd;
+    for(b=0;b<bullets.length;b++){shot=bullets[b];if(shot.target==='zombie')continue;sx=shot.x-state.x;sy=shot.y-state.y;sd=sx*sx+sy*sy;if(sd>=td)continue;var vx=shot.vx||0,vy=shot.vy||0;if(vx*(-sx)+vy*(-sy)<=0)continue;td=sd;threat=shot;}
+    if(threat){var tvx=threat.vx||0,tvy=threat.vy||0,tm=Math.hypot(tvx,tvy)||1,px=-tvy/tm,py=tvx/tm,lx=state.x-threat.x,ly=state.y-threat.y;if(px*lx+py*ly<0){px=-px;py=-py;}moveTarget={x:state.x+px*180,y:state.y+py*180};return;}
+    if(!best)return;
+    dx=best.x-state.x;dy=best.y-state.y;var dist=Math.hypot(dx,dy)||1;moveTarget={x:best.x,y:best.y};
+    if(state.dashCooldown<=0&&state.dashTimer<=0&&dist<=dashDistance())startDash(dx,dy);
+  }
+  function botMutate(){
+    if(!pendingMutation){var btn=els.mutationChoices.querySelector('button');if(btn)btn.click();}
+    else document.getElementById('confirmMutationBtn').click();
+  }
+  function botFinish(){
+    if(botLogged)return;botLogged=true;
+    var line='BOT time='+state.elapsed.toFixed(1)+' kills='+state.kills+' milestone='+state.milestone+' mutations='+state.milestone;
+    console.log(line);
+    var el=document.getElementById('bot-log');if(!el){el=document.createElement('div');el.id='bot-log';el.hidden=true;document.body.appendChild(el);}
+    el.textContent=line;el.setAttribute('data-bot-done','1');
+  }
   function update(dt) {
     state.elapsed+=dt;updateAudio(dt);state.shake=Math.max(0,state.shake-dt*22);state.carapaceBreak=Math.max(0,state.carapaceBreak-dt);state.invincible=Math.max(0,state.invincible-dt);state.airstrikeEvasion=Math.max(0,state.airstrikeEvasion-dt);state.damageFlash=Math.max(0,state.damageFlash-dt*2.8);state.eatSnap=Math.max(0,state.eatSnap-dt);state.mutationPulse=Math.max(0,state.mutationPulse-dt);state.stunTimer=Math.max(0,state.stunTimer-dt);state.stunImmunityTimer=Math.max(0,state.stunImmunityTimer-dt);els.damageFlash.style.opacity=String(state.damageFlash);state.dashCooldown=Math.max(0,state.dashCooldown-dt);state.comboTimer=Math.max(0,state.comboTimer-dt);if(state.comboTimer===0)state.combo=0;
     state.threatLevel=Math.min(100,state.threatLevel+dt*(.16+state.milestone*.012));state.threat=1+state.threatLevel/140;
@@ -1140,6 +1172,7 @@
     var comboMult=1+Math.floor(state.combo/3)*.25;els.comboReadout.childNodes[0].nodeValue='FRENZY ×'+comboMult.toFixed(2);els.comboTimer.textContent=state.combo?state.combo+' kill chain · '+state.comboTimer.toFixed(1)+'s':'Feed again to start';els.comboReadout.classList.toggle('show',state.combo>1);els.comboReadout.style.setProperty('--combo-progress',Math.max(0,state.comboTimer/3.4).toFixed(3));
     if(state.traits.preserving&&state.secondLives===0&&state.carapaceCooldown>0){state.carapaceCooldown=Math.max(0,state.carapaceCooldown-dt);if(state.carapaceCooldown===0)state.secondLives=1;}
     if(state.traits.infestation){state.spitClock-=dt;if(state.spitClock<=0){fireInfectiousSpit();state.spitClock=Math.max(.5,1.18-state.traits.infestation*.06);}}
+    if(botOn)botThink();
     var dx=0,dy=0,directInput=false;
     var kx=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0), ky=(keys.ArrowDown||keys.KeyS?1:0)-(keys.ArrowUp||keys.KeyW?1:0);
     if(joystickVector.x||joystickVector.y){kx=joystickVector.x;ky=joystickVector.y;}
@@ -1154,8 +1187,8 @@
     if(state.traits.acid&&state.walking){state.acidClock-=dt;if(state.acidClock<=0){if(acidPools.length>=ACID_CAP)acidPools.shift();acidPools.push({x:state.x-Math.cos(state.aim)*18*state.sizeScale,y:state.y-Math.sin(state.aim)*18*state.sizeScale,r:12+state.traits.acid*3,life:3.8,max:3.8,seed:Math.random()*TAU});state.acidClock=Math.max(.11,.25-state.traits.acid*.025);}}
     if(radio&&radio.active){var rdx=radio.x-state.x,rdy=radio.y-state.y,radioReach=state.devourRadius*state.sizeScale+24;if(rdx*rdx+rdy*rdy<radioReach*radioReach)destroyRadio();}else if(radio&&state.elapsed>=radio.respawnAt)spawnRadio();
     spawnClock-=dt;var tierPressure=1+state.milestone*.11,interval=(isClimax()?.13:Math.max(.22,1.05-state.elapsed*.0045))/tierPressure,enemyLimit=enemyLimitForTier();if(spawnClock<=0&&enemies.length<enemyLimit){spawnEnemy();spawnClock=interval*(.75+Math.random()*.5);}
-    militaryClock-=dt;if(state.elapsed>=5&&state.elapsed<8){els.airstrikeAlert.textContent='Containment incoming · '+Math.ceil(8-state.elapsed);els.airstrikeAlert.classList.add('show');}else if(state.elapsed<180){els.airstrikeAlert.classList.remove('show');els.airstrikeAlert.textContent='Airstrike inbound';}
-    if(state.elapsed>8&&militaryClock<=0){spawnMilitarySquad();militaryClock=isClimax()?5+Math.random()*3:22+Math.random()*13;}
+    militaryClock-=dt;if(state.elapsed>=2.5&&state.elapsed<5){els.airstrikeAlert.textContent='Containment incoming · '+Math.ceil(5-state.elapsed);els.airstrikeAlert.classList.add('show');}else if(state.elapsed<180&&els.airstrikeAlert.textContent!=='Radio destroyed · strike delayed'){els.airstrikeAlert.classList.remove('show');els.airstrikeAlert.textContent='Airstrike inbound';}
+    if(state.elapsed>5&&militaryClock<=0){spawnMilitarySquad();militaryClock=isClimax()?5+Math.random()*3:22+Math.random()*13;}
     if(state.elapsed>=130||isClimax()){containmentClock-=dt;if(containmentClock<=0){spawnContainmentWave();containmentClock=isClimax()?3.4+Math.random()*1.8:Math.max(4.5,10-(state.elapsed-130)*.012)+Math.random()*2.5;}}
     if(isClimax()){airstrikeClock-=dt;if(airstrikeClock<=0){callAirstrike();airstrikeClock=Math.max(24,AIRSTRIKE_COOLDOWN-state.milestone*2.4);}}
     if(state.elapsed>=240||isClimax()){tankClock-=dt;if(tankClock<=0){spawnTank();tankClock=isClimax()?9+Math.random()*5:Math.max(15,34-(state.elapsed-240)*.018)+Math.random()*7;}}
@@ -1168,7 +1201,7 @@
       if(strike.phase==='warning'){warningActive=true;var lockX=state.x+Math.cos(state.aim)*strike.lead,lockY=state.y+Math.sin(state.aim)*strike.lead,lockRate=.22+strike.accuracy*1.15;strike.x+=(lockX-strike.x)*Math.min(1,dt*lockRate);strike.y+=(lockY-strike.y)*Math.min(1,dt*lockRate);if(strike.timer<=0){strike.phase='blast';strike.timer=.52;state.shake=Math.max(state.shake,17);sfx('airstrike');var adx=state.x-strike.x,ady=state.y-strike.y;if(adx*adx+ady*ady<strike.radius*strike.radius&&state.invincible<=0&&state.airstrikeEvasion<=0){var airDamage=playerDamage(58,'airstrike',.25,18);state.hp=Math.max(0,state.hp-airDamage);state.lastHit='The strike volley landed before you cleared the blast ring.';hitPlayer(airDamage);if(state.hp<=0)handleLethal();}for(var am=0;am<(reduceMotion?9:26);am++)pushMote({x:strike.x,y:strike.y,vx:(Math.random()-.5)*340,vy:(Math.random()-.5)*340,life:.45+Math.random()*.45,max:.9,size:4+Math.random()*5,color:am%3?'#ff7a3d':'#ffe293'});for(var sb=swarm.length-1;sb>=0;sb--){var sax=swarm[sb].x-strike.x,say=swarm[sb].y-strike.y;if(sax*sax+say*say<strike.radius*strike.radius)swarm.splice(sb,1);}}}
       else if(strike.timer<=0)airstrikes.splice(ai,1);
     }
-    els.airstrikeAlert.classList.toggle('show',warningActive||(state.elapsed>=5&&state.elapsed<8));
+    if(warningActive){if(els.airstrikeAlert.textContent==='Radio destroyed · strike delayed')els.airstrikeAlert.textContent='Airstrike inbound';els.airstrikeAlert.classList.add('show');}else if(state.elapsed>=2.5&&state.elapsed<5)els.airstrikeAlert.classList.add('show');else if(els.airstrikeAlert.textContent!=='Radio destroyed · strike delayed')els.airstrikeAlert.classList.remove('show');
     for(var i=enemies.length-1;i>=0;i--){
       var e=enemies[i],ex=state.x-e.x,ey=state.y-e.y,ed=Math.hypot(ex,ey)||1;
       var vx=0,vy=0,armed=e.type!=='civilian'&&e.type!=='zombie',zombiePrey=armed&&e.type!=='exosuit'&&e.type!=='warbot'?nearestZombie(e.x,e.y,e.type==='rocket'?480:330,e):null;e.firing=Math.max(0,e.firing-dt);e.shootClock-=dt;e.biteClock=Math.max(0,(e.biteClock||0)-dt);
@@ -1210,7 +1243,7 @@
       } else if(armed&&zombiePrey){
         var zdx=zombiePrey.enemy.x-e.x,zdy=zombiePrey.enemy.y-e.y,zd=Math.hypot(zdx,zdy)||1,zrange=e.type==='tank'?540:e.type==='rocket'?470:e.type==='soldier'?400:320;
         if(zd<90){vx=-zdx/zd*e.speed;vy=-zdy/zd*e.speed;e.running=true;}else if(zd>zrange*.76){vx=zdx/zd*e.speed*.72;vy=zdy/zd*e.speed*.72;e.running=true;}else {e.running=false;}
-        if(zd<zrange&&e.shootClock<=0){var zaim=Math.atan2(zdy,zdx)+(Math.random()-.5)*(e.type==='police'?.14:.05),zspeed=e.type==='tank'?310:e.type==='rocket'?250:e.type==='soldier'?480:350,zdamage=e.type==='tank'?55:e.type==='rocket'?34:e.type==='soldier'?11:4,zkind=e.type==='tank'?'cannon':e.type==='rocket'?'rocket':'bullet';pushBullet({x:e.x+Math.cos(zaim)*(e.type==='tank'?31:18),y:e.y+Math.sin(zaim)*(e.type==='tank'?31:18),vx:Math.cos(zaim)*zspeed,vy:Math.sin(zaim)*zspeed,life:(zkind==='rocket'||zkind==='cannon')?2.35:1.4,damage:zdamage,color:zkind==='cannon'?'#ffd38a':zkind==='rocket'?'#ff8a45':e.type==='soldier'?'#ffd27a':'#b9ddff',kind:zkind,target:'zombie'});e.shootClock=e.type==='tank'?3.4:e.type==='rocket'?2.8:e.type==='soldier'?.67:1.15;e.firing=.22;e.heading=zaim;}
+        if(zd<zrange&&e.shootClock<=0){var zaim=Math.atan2(zdy,zdx)+(Math.random()-.5)*(e.type==='police'?.14:.05),zspeed=e.type==='tank'?310:e.type==='rocket'?250:e.type==='soldier'?480:350,zdamage=e.type==='tank'?55:e.type==='rocket'?34:e.type==='soldier'?soldierShotDamage():4,zkind=e.type==='tank'?'cannon':e.type==='rocket'?'rocket':'bullet';pushBullet({x:e.x+Math.cos(zaim)*(e.type==='tank'?31:18),y:e.y+Math.sin(zaim)*(e.type==='tank'?31:18),vx:Math.cos(zaim)*zspeed,vy:Math.sin(zaim)*zspeed,life:(zkind==='rocket'||zkind==='cannon')?2.35:1.4,damage:zdamage,color:zkind==='cannon'?'#ffd38a':zkind==='rocket'?'#ff8a45':e.type==='soldier'?'#ffd27a':'#b9ddff',kind:zkind,target:'zombie'});e.shootClock=e.type==='tank'?3.4:e.type==='rocket'?2.8:e.type==='soldier'?.67:1.15;e.firing=.22;e.heading=zaim;}
       } else if(!armed){
         var nearbyZombie=nearestZombie(e.x,e.y,210,e);
         if(nearbyZombie){var fzx=e.x-nearbyZombie.enemy.x,fzy=e.y-nearbyZombie.enemy.y,fzd=Math.hypot(fzx,fzy)||1;vx=fzx/fzd*e.speed*1.7;vy=fzy/fzd*e.speed*1.7;e.running=true;}
@@ -1230,15 +1263,15 @@
         else if(ed>rocketPreferred+45){vx=ex/ed*e.speed*.7;vy=ey/ed*e.speed*.7;e.running=true;}
         else {vx=-ey/ed*e.speed*.18*e.tacticSide;vy=ex/ed*e.speed*.18*e.tacticSide;e.running=false;}
         if(ed<560*state.aggroScale&&ed>135&&e.shootClock<=0){var ra=Math.atan2(ey,ex)+(Math.random()-.5)*.035,rs=250;pushBullet({x:e.x+Math.cos(ra)*22,y:e.y+Math.sin(ra)*22,vx:Math.cos(ra)*rs,vy:Math.sin(ra)*rs,life:2.35,damage:34,color:'#ff8a45',kind:'rocket',homing:isClimax()});e.shootClock=2.8+Math.random()*.55;e.firing=.4;e.heading=ra;}
-      } else if(e.type==='soldier'&&e.squadId){
+      } else if(e.type==='soldier'&&e.squadId!=null){
         var squad=getSquad(e.squadId), target=squad?squadTarget(e,squad):null;
         var tdx=target?target.x-e.x:ex, tdy=target?target.y-e.y:ey, td=Math.hypot(tdx,tdy)||1;
         if(ed<112){vx=-ex/ed*e.speed*1.35;vy=-ey/ed*e.speed*1.35;e.running=true;}
         else if(td>13){vx=tdx/td*e.speed*1.08;vy=tdy/td*e.speed*1.08;e.running=true;}
         else {e.running=false;}
-        if(ed<510*state.aggroScale&&ed>88&&td<118&&e.shootClock<=0){
+        if(ed<510*state.aggroScale&&ed>88&&(!target||td<118)&&e.shootClock<=0){
           var soldierSpread=(Math.random()-.5)*.045, soldierAngle=Math.atan2(ey,ex)+soldierSpread, soldierSpeed=480;
-          pushBullet({x:e.x+Math.cos(soldierAngle)*18,y:e.y+Math.sin(soldierAngle)*18,vx:Math.cos(soldierAngle)*soldierSpeed,vy:Math.sin(soldierAngle)*soldierSpeed,life:1.45,damage:11,color:'#ffd27a'});
+          pushBullet({x:e.x+Math.cos(soldierAngle)*18,y:e.y+Math.sin(soldierAngle)*18,vx:Math.cos(soldierAngle)*soldierSpeed,vy:Math.sin(soldierAngle)*soldierSpeed,life:1.45,damage:soldierShotDamage(),color:'#ffd27a'});
           e.shootClock=.63+Math.random()*.1;e.firing=.24;e.heading=soldierAngle;
         }
       } else {
@@ -1307,7 +1340,7 @@
         removeBullet(b);
         if(shot.kind==='exopulse'){for(var px=0;px<(reduceMotion?4:10);px++)pushMote({x:shot.x,y:shot.y,vx:(Math.random()-.5)*150,vy:(Math.random()-.5)*150,life:.18+Math.random()*.24,max:.42,size:2+Math.random()*2,color:px%2?'#8ff6ff':'#d9fbff'});if(state.m9Perk==='unseen'){addFloat(state.x,state.y-32*state.sizeScale,'NO SIGNAL','#9debd6');}else if(state.m9Perk==='unstoppable'){addFloat(state.x,state.y-32*state.sizeScale,'STUN IMMUNE','#fff0a8');}else if(state.invincible<=0&&state.stunImmunityTimer<=0){state.stunTimer=Math.max(state.stunTimer,1);state.stunImmunityTimer=10;state.dashTimer=0;state.walking=false;hudWakeUntil=state.elapsed+1.4;document.body.classList.remove('hud-quiet');state.shake=Math.max(state.shake,5);addFloat(state.x,state.y-32*state.sizeScale,'PULSE STUN · 1.0s','#8ff6ff');}else if(state.invincible<=0){addFloat(state.x,state.y-32*state.sizeScale,'PULSE RESISTED','#b8fbff');}continue;}
         if(shot.kind==='rocket'||shot.kind==='cannon'||shot.kind==='exocannon'){for(var rx=0;rx<(reduceMotion?7:20);rx++)pushMote({x:shot.x,y:shot.y,vx:(Math.random()-.5)*260,vy:(Math.random()-.5)*260,life:.35+Math.random()*.35,max:.7,size:3+Math.random()*4,color:rx%2?((shot.kind==='cannon'||shot.kind==='exocannon')?'#837c69':'#ff7a3d'):'#ffd27a'});}
-        if(state.invincible>0||(state.m9Perk==='unstoppable'&&shot.kind!=='exocannon')||state.m9Perk==='unseen'||(state.armour<500&&state.milestone>=5&&shot.kind!=='rocket'&&shot.kind!=='cannon'&&shot.kind!=='exocannon')){for(var iq=0;iq<3;iq++)pushMote({x:state.x,y:state.y,vx:(Math.random()-.5)*150,vy:(Math.random()-.5)*150,life:.22,max:.22,size:2.5,color:state.milestone>=5?'#b7f0a0':'#ead58a'});}
+        if(state.invincible>0||(state.m9Perk==='unstoppable'&&shot.kind!=='exocannon')||state.m9Perk==='unseen'){for(var iq=0;iq<3;iq++)pushMote({x:state.x,y:state.y,vx:(Math.random()-.5)*150,vy:(Math.random()-.5)*150,life:.22,max:.22,size:2.5,color:state.milestone>=5?'#b7f0a0':'#ead58a'});}
         else {var armourFactor=shot.kind==='cannon'?.3:shot.kind==='rocket'?.45:shot.kind==='exocannon'?.22:1,mitigated=playerDamage(shot.damage,shot.kind||'bullet',armourFactor,shot.kind==='exocannon'?5:1);state.hp=Math.max(0,state.hp-mitigated);hitPlayer(mitigated);if(shot.kind==='exocannon'){state.lastHit='An exosuit heavy cannon caught you in the open.';}else if(shot.kind==='airstrike')state.lastHit='The strike volley landed before you cleared the blast ring.';else state.lastHit='The containment fire caught you in the open.';state.shake=shot.kind==='cannon'?17:shot.kind==='exocannon'?15:shot.kind==='rocket'?13:7;if(shot.kind==='cannon'||shot.kind==='rocket'||shot.kind==='exocannon')sfx('blast');for(var q=0;q<9;q++)pushMote({x:state.x,y:state.y,vx:(Math.random()-.5)*165,vy:(Math.random()-.5)*165,life:.32+Math.random()*.28,max:.6,size:3+Math.random()*2,color:q%3?'#631224':(shot.kind==='cannon'||shot.kind==='exocannon')?'#ffd38a':'#ff8a45'});if(state.hp<=0)handleLethal();}
       } else if(shot.life<=0)removeBullet(b);
     }
@@ -1322,7 +1355,7 @@
     els.level.textContent=state.milestone;els.xpText.textContent=Math.floor(state.biomass)+'/'+state.nextBiomass;els.xpBar.style.transform='scaleX('+Math.max(0,Math.min(1,(state.biomass-prior)/(state.nextBiomass-prior)))+')';
     els.armourStat.textContent=Math.round(state.armour);els.speedStat.textContent=Math.round(state.speed);els.threatStat.textContent=Math.round(state.threatLevel)+'%';
     var climax=isClimax(),phase=climax?'CLIMAX':state.threatLevel>=34?'HUNTED':'HUNGRY';els.phaseReadout.textContent=phase;els.phaseReadout.style.color=climax?'var(--danger)':state.threatLevel>=34?'var(--amber)':'var(--lime)';
-    els.time.textContent=formatTime(state.elapsed);els.kills.textContent=state.kills;els.distance.textContent=Math.floor(state.distance)+'m';els.dashStat.textContent=state.dashCooldown>0?state.dashCooldown.toFixed(1)+'s':'READY';els.dashLabel.textContent=Math.round(dashDistance())+' range'+(state.m9Perk==='unstoppable'?' · 0.8s reset':' · dash');els.dashPip.classList.toggle('ready',state.dashCooldown<=0);els.missionPrompt.textContent=state.milestone===0?'Eat 3 to mutate':'Outlast the squad.';
+    els.time.textContent=formatTime(state.elapsed);els.kills.textContent=state.kills;els.distance.textContent=Math.floor(state.distance)+'m';els.dashStat.textContent=state.dashCooldown>0?state.dashCooldown.toFixed(1)+'s':'READY';els.dashLabel.textContent=Math.round(dashDistance())+' range'+(state.m9Perk==='unstoppable'?' · 0.8s reset':' · dash');els.dashPip.classList.toggle('ready',state.dashCooldown<=0);els.missionPrompt.textContent=state.milestone>=10?'Win':state.milestone>=9?'Assault':state.milestone>=8?'Apex':state.elapsed>=5?'Climax':state.milestone===0?'Response · eat 3 to mutate':'Response';
     if(radio&&radio.active){var rdx=radio.x-state.x,rdy=radio.y-state.y,meters=Math.max(0,Math.round(Math.hypot(rdx,rdy)/10)),arrow=Math.abs(rdx)>Math.abs(rdy)?(rdx>0?'→':'←'):(rdy>0?'↓':'↑');els.objective.innerHTML='<b>RADIO</b> '+meters+'m '+arrow+' · destroy to delay strike';}else if(radio){els.objective.innerHTML='<b>RADIO DOWN</b> · strikes delayed '+Math.max(0,Math.ceil(radio.respawnAt-state.elapsed))+'s';}
     var t=victoryCinematic?'kaiju emergence':state.stunTimer>0?'pulse stunned '+state.stunTimer.toFixed(1)+'s':state.stunImmunityTimer>0?'pulse immune '+state.stunImmunityTimer.toFixed(1)+'s':state.invincible>0?'invulnerable '+state.invincible.toFixed(1)+'s':state.carapaceCooldown>0?'carapace reforms '+state.carapaceCooldown.toFixed(1)+'s':state.threatLevel>=34?'army patrols · radios matter':state.elapsed<25?'civilians fleeing':'response closing';els.threat.textContent=t;
   }
@@ -1378,8 +1411,8 @@
   function recordRunStats(){sessionBest.time=Math.max(sessionBest.time,state.elapsed);sessionBest.milestone=Math.max(sessionBest.milestone,state.milestone);sessionBest.kills=Math.max(sessionBest.kills,state.kills);sessionBest.size=Math.max(sessionBest.size,state.sizeScale);els.bestTime.textContent=formatTime(sessionBest.time);els.bestMilestone.textContent=sessionBest.milestone;els.bestKills.textContent=sessionBest.kills;els.bestSize.textContent=sessionBest.size.toFixed(2)+'×';}
   function endGame(){ended=true;moveTarget=null;recordRunStats();els.endCopy.textContent=state.lastHit;els.finalTime.textContent=formatTime(state.elapsed);els.finalKills.textContent=state.kills;els.finalLevel.textContent=state.milestone;els.endModal.classList.add('show');}
   function setPaused(v){if(ended||choosingMutation||victoryCinematic)return;paused=v;if(v){moveTarget=null;hudWakeUntil=state.elapsed+99;document.body.classList.remove('hud-quiet');}els.pauseModal.classList.toggle('show',v);document.getElementById('pauseBtn').setAttribute('aria-label',v?'Resume game':'Pause game');}
-  function loop(now){var dt=Math.min(.034,(now-last)/1000);last=now;if(hitStop>0){hitStop=Math.max(0,hitStop-dt);dt=0;}if(!paused&&!ended&&!choosingMutation){if(victoryCinematic)updateVictory(dt);else update(dt);}render();requestAnimationFrame(loop);}
-  function setMoveTarget(e){if(paused||ended||victoryCinematic)return;e.preventDefault();ensureAudio();var dirX=e.clientX-W/2,dirY=e.clientY-H/2,now=performance.now(),tapGap=now-lastDirectionTap.time,tapDistance=Math.hypot(e.clientX-lastDirectionTap.x,e.clientY-lastDirectionTap.y),sameSpot=tapDistance<=Math.max(68,Math.min(W,H)*.14),hasDirection=Math.hypot(dirX,dirY)>28;moveTarget={x:state.x+dirX,y:state.y+dirY};if(tapGap<=340&&sameSpot&&hasDirection){lastDirectionTap={time:0,x:0,y:0};startDash(dirX,dirY);}else lastDirectionTap={time:now,x:e.clientX,y:e.clientY};dismissMovementHint();}
+  function loop(now){var dt=Math.min(.034,(now-last)/1000);last=now;if(hitStop>0){hitStop=Math.max(0,hitStop-dt);dt=0;}if(!paused&&!ended&&!choosingMutation){if(victoryCinematic)updateVictory(dt);else update(dt);}if(botOn&&choosingMutation)botMutate();if(botOn&&ended)botFinish();render();requestAnimationFrame(loop);}
+  function setMoveTarget(e){if(paused||ended||victoryCinematic)return;e.preventDefault();ensureAudio();var zoom=cameraZoom()||1,screenX=e.clientX-W/2,screenY=e.clientY-H/2,dirX=screenX/zoom,dirY=screenY/zoom,now=performance.now(),tapGap=now-lastDirectionTap.time,tapDistance=Math.hypot(e.clientX-lastDirectionTap.x,e.clientY-lastDirectionTap.y),sameSpot=tapDistance<=Math.max(68,Math.min(W,H)*.14),hasDirection=Math.hypot(screenX,screenY)>28;moveTarget={x:state.x+dirX,y:state.y+dirY};if(tapGap<=340&&sameSpot&&hasDirection){lastDirectionTap={time:0,x:0,y:0};startDash(dirX,dirY);}else lastDirectionTap={time:now,x:e.clientX,y:e.clientY};dismissMovementHint();}
   function blockPointerGesture(e){e.preventDefault();}
   function blockTouchScroll(e){e.preventDefault();}
   function updateJoystick(e){var r=els.joystick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,dx=e.clientX-cx,dy=e.clientY-cy,max=r.width*.34,mag=Math.hypot(dx,dy)||1,clamp=Math.min(max,mag),power=clamp/max;if(power<.12)power=0;joystickVector.x=dx/mag*power;joystickVector.y=dy/mag*power;els.joystickKnob.style.transform='translate('+(dx/mag*clamp)+'px,'+(dy/mag*clamp)+'px)';if(power>0)dismissMovementHint();}
@@ -1393,7 +1426,7 @@
   document.addEventListener('touchmove',function(e){var target=e.target,insideScrollable=target&&target.closest&&target.closest('.mutation-card');if(joystickPointer!==null||!insideScrollable)e.preventDefault();},{passive:false});
   window.addEventListener('keydown',function(e){ensureAudio();keys[e.code]=true;if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code)>=0)dismissMovementHint();if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight'].indexOf(e.code)>=0)e.preventDefault();var dashDirections={KeyW:[0,-1],ArrowUp:[0,-1],KeyS:[0,1],ArrowDown:[0,1],KeyA:[-1,0],ArrowLeft:[-1,0],KeyD:[1,0],ArrowRight:[1,0]},dashDirection=dashDirections[e.code];if(dashDirection&&!e.repeat){var now=performance.now(),previousTap=keyTapTimes[e.code]||0;if(now-previousTap<=340){keyTapTimes[e.code]=0;startDash(dashDirection[0],dashDirection[1]);}else keyTapTimes[e.code]=now;}if((e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight')&&!e.repeat)startDash();if(e.code==='Escape'){if(choosingMutation&&pendingMutation)cancelMutationConfirmation();else setPaused(!paused);}});
   window.addEventListener('keyup',function(e){keys[e.code]=false;});
-  window.addEventListener('resize',resize);if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);window.addEventListener('orientationchange',resize);window.addEventListener('blur',function(){if(!ended)setPaused(true);});document.addEventListener('visibilitychange',function(){if(document.hidden&&!ended&&!paused&&!choosingMutation)setPaused(true);last=performance.now();});
+  window.addEventListener('resize',resize);if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);window.addEventListener('orientationchange',resize);window.addEventListener('blur',function(){if(!ended&&!botOn)setPaused(true);});document.addEventListener('visibilitychange',function(){if(document.hidden&&!ended&&!paused&&!choosingMutation&&!botOn)setPaused(true);last=performance.now();});
   if(darkQuery.addEventListener)darkQuery.addEventListener('change',function(e){isDark=e.matches;});
   document.getElementById('cancelMutationBtn').addEventListener('click',cancelMutationConfirmation);
   document.getElementById('confirmMutationBtn').addEventListener('click',function(){if(pendingMutation)chooseMutation(pendingMutation);});
@@ -1406,7 +1439,7 @@
   document.getElementById('wildlifeToggle').addEventListener('click',function(){settings.wildlife=!settings.wildlife;this.textContent=settings.wildlife?'ON':'OFF';});
   document.getElementById('resumeBtn').addEventListener('click',function(){ensureAudio();setPaused(false);last=performance.now();});
   document.getElementById('restartBtn').addEventListener('click',function(){ensureAudio();reset();last=performance.now();});
-  resize();reset();requestAnimationFrame(loop);
+  if(botOn){var botLogEl=document.createElement('div');botLogEl.id='bot-log';botLogEl.hidden=true;document.body.appendChild(botLogEl);}resize();reset();requestAnimationFrame(loop);
 })();
 </script>
 </body>
